@@ -1,4 +1,6 @@
-﻿namespace OptixAPI.Data;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace OptixAPI.Data;
 
 
 /// <summary>
@@ -15,32 +17,20 @@ public class MovieRepository : IMovieRepository
         _dbContext = dbontext;
     }
 
-    public List<Mymoviedb> GetPaged(string movieName, string? genrefilter, int limit, int pageSize, int pageNumber)
+    public async Task<List<Mymoviedb>> GetPagedAsync(string movieName, string? genrefilter, int limit, int pageSize, int pageNumber)
     {
-        if (string.IsNullOrWhiteSpace(genrefilter))
-        {
-            IQueryable<Mymoviedb> query = _dbContext.Mymoviedbs;
-
-            return query.Where(x => x.Title.StartsWith(movieName))
-                            .Take(limit)
-                            .Skip(pageSize * (pageNumber - 1)).Take(pageSize).ToList();
-        }
-        else
-        {
-            return GetPagedFiltered(movieName, genrefilter, limit, pageSize, pageNumber);
-        }
-
-    }
-
-    private List<Mymoviedb> GetPagedFiltered(string movieName, string genrefilter, int limit, int pageSize, int pageNumber)
-    {
-        string[] words = genrefilter.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+        string[] words = [];
+        if (genrefilter != null)
+            words = genrefilter.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
         IQueryable<Mymoviedb> query = _dbContext.Mymoviedbs;
-        return query.Where(x => x.Title.StartsWith(movieName))
+
+        return await query.Where(x => x.Title.StartsWith(movieName))
                           .Where(y => words.All(x => y.Genre.Contains(x)))
+                          .OrderBy(z => z.Title)
                           .Take(limit)
-                          .Skip(pageSize * (pageNumber - 1)).Take(pageSize).ToList();
-     
+                          .Skip(pageSize * (pageNumber - 1)).Take(pageSize)
+                          .ToListAsync();
+
     }
 }
 

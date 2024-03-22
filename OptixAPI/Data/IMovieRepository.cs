@@ -2,6 +2,6 @@
 {
     public interface IMovieRepository
     {
-        public List<Mymoviedb> GetPaged(string movieName, string filter, int limit, int pageSize, int pageNumber);
+        public Task<List<Mymoviedb>> GetPagedAsync(string movieName, string filter, int limit, int pageSize, int pageNumber);
     }
 }
